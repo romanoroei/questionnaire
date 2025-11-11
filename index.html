@@ -68,7 +68,7 @@ body {
     z-index: 1000;
     background: linear-gradient(135deg, var(--navy-primary) 0%, var(--navy-secondary) 100%);
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-    padding: 0.35rem 0;
+    padding: 0.75rem 0;
     border-top: 2px solid var(--gold-primary);
 }
 
@@ -887,7 +887,7 @@ body {
     }
     
     .sticky-footer {
-        padding: 0.3rem 0;
+        padding: 0.65rem 0;
     }
     
     .footer-content {
@@ -2762,4 +2762,33 @@ function checkConditionalChanges() {
             }
         }
     });
-    return hasChange
+    return hasChanges;
+}
+
+function hasConditionalQuestions(triggerId) {
+    // Check if any questions depend on this answer
+    return questions.some(q => {
+        if (q.conditional) {
+            const condStr = q.conditional.toString();
+            // Check if the conditional function references this ID
+            return condStr.includes(triggerId);
+        }
+        return false;
+    });
+}
+
+function cancelEdit() {
+    document.getElementById('editContainer').style.display = 'none';
+    document.getElementById('summaryContainer').style.display = 'block';
+}
+
+function scrollToTop() {
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function scrollToTopInstant() {
+    window.scrollTo({top: 0, behavior: 'auto'});
+}
+    </script>
+</body>
+</html>
