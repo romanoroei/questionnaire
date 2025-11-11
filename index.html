@@ -305,10 +305,10 @@ body {
 
 .section-header {
     text-align: center;
-    padding: 1.75rem 0.5rem 1.5rem 0.5rem;
+    padding: 1.75rem 1.5rem 1.5rem 1.5rem;
     background: linear-gradient(135deg, var(--navy-primary) 0%, var(--navy-secondary) 100%);
-    border-radius: 10px;
-    margin: 0.25rem;
+    border-radius: 12px;
+    margin: 0;
 }
 
 .section-header h2 {
@@ -959,9 +959,9 @@ body {
     }
 
     .section-header {
-        padding: 0.75rem 0.5rem 1.25rem 0.5rem;
+        padding: 0.75rem 1.5rem 1.25rem 1.5rem;
         margin: 0;
-        border-radius: 10px;
+        border-radius: 12px;
     }
     
     .section-header h2 {
@@ -1281,19 +1281,19 @@ body {
             <div style="text-align: center; background: linear-gradient(135deg, var(--navy-primary) 0%, var(--navy-secondary) 100%); padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
                 <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--gold-primary); margin-bottom: 1rem;"></i>
                 <h2 style="color: var(--gold-primary); font-size: 1.8rem; margin-bottom: 0.5rem;">כל הכבוד! סיימת את השאלון</h2>
-                <p style="color: var(--white); font-size: 1rem; margin: 0;">תודה שהקדשת מזמנך למלא את השאלון. אשמח לעבור על התשובות ולחזור אליך בהקדם.</p>
+                <p style="color: var(--white); font-size: 1rem; margin: 0;">תודה שהקדשת מזמנך למלא את השאלון. שלח אלי את התשובות כדי שאוכל לעבור עליהן ולחזור אליך בהקדם.</p>
             </div>
-            
-            <h2 style="text-align: center; color: var(--navy-primary); font-size: 1.8rem; margin-bottom: 1.5rem;">סיכום התשובות</h2>
             
             <div class="summary-actions" style="justify-content: center; margin-bottom: 2rem;">
                 <button class="btn-primary" onclick="sendEmail()">
-                    <i class="fas fa-envelope"></i> שלח אלי את התשובות במייל
+                    <i class="fas fa-envelope"></i> לשליחת התשובות במייל
                 </button>
                 <button class="btn-secondary" onclick="editAnswers()">
                     <i class="fas fa-edit"></i> ערוך תשובות
                 </button>
             </div>
+            
+            <h2 style="text-align: center; color: var(--navy-primary); font-size: 1.8rem; margin-bottom: 1.5rem;">סיכום התשובות</h2>
             
             <div id="summaryContent"></div>
         </div>
@@ -1364,7 +1364,7 @@ const questions = [
     {
         section: 1,
         sectionTitle: "שאלון רמת סיכון",
-        sectionDesc: "שאלון זה נועד לאמוד את רמת הסיכון המתאימה לך בהשקעות. התשובות שלך יעזרו לנו להתאים את התכנית הפיננסית שלך לצרכים ולציפיות שלך בצורה הטובה ביותר.",
+        sectionDesc: "שאלון זה נועד לאמוד את רמת הסיכון המתאימה לך בהשקעות. התשובות שלך יעזרו לי להתאים את התכנית הפיננסית שלך לצרכים ולציפיות שלך בצורה הטובה ביותר.",
         id: "risk1",
         text: "אני מאמין שהשקעה בנכסים בעלי רמת סיכון גבוהה מוכיחה את עצמה כאפיק ההשקעה הטוב ביותר לחיסכון ארוך טווח",
         type: "risk-scale",
@@ -1708,15 +1708,7 @@ const questions = [
     {
         section: 3,
         sectionTitle: "שאלות כלליות ומאפייני חיסכון",
-        sectionDesc: "מידע אישי זה יעזור לנו להתאים את הפתרון הפיננסי המושלם עבורך ולהכין את המסמכים הנדרשים בצורה מדויקת.",
-        id: "birthDate",
-        text: "תאריך לידה",
-        type: "date",
-        icon: "fa-birthday-cake",
-        required: true
-    },
-    {
-        section: 3,
+        sectionDesc: "מידע אישי זה יעזור לי להתאים את הפתרון הפיננסי המושלם עבורך ולהכין את המסמכים הנדרשים בצורה מדויקת.",
         id: "maritalStatus",
         text: "מצב משפחתי",
         type: "radio",
@@ -2270,16 +2262,6 @@ function goNext(autoAdvance = false) {
             return;
         }
         
-        if (question.type === 'date' && question.id === 'birthDate') {
-            const birthDate = new Date(answers[question.id]);
-            const today = new Date();
-            const age = today.getFullYear() - birthDate.getFullYear();
-            
-            if (age < 0 || age > 120) {
-                alert('תאריך לידה לא תקין. אנא הכנס גיל בין 0 ל-120 שנה');
-                return;
-            }
-        }
         
         if (question.type === 'checkbox' && answers[question.id].length === 0) {
             alert('יש לבחור לפחות אפשרות אחת');
