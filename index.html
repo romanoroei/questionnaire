@@ -2367,7 +2367,7 @@ function sendEmail() {
             <p style="font-size: 0.85rem; color: #6b7280; margin-top: 1rem;">
                 <i class="fas fa-info-circle"></i> אם חלון המייל לא נפתח, אנא שלח דרך WhatsApp
             </p>
-            <button onclick="location.reload()" class="modal-btn">סגור</button>
+            <button onclick="document.querySelector('.modal').remove()" class="modal-btn">סגור</button>
             <button onclick="sendWhatsApp()" class="btn-secondary" style="width: 100%; margin-top: 0.5rem; background: #25D366 !important; color: white !important; border: none;">
                 <i class="fab fa-whatsapp"></i> או שלח ב-WhatsApp
             </button>
@@ -2382,13 +2382,40 @@ function sendFullEmail(clientEmail, clientName) {
     
     const today = new Date().toLocaleDateString('he-IL');
     
-    // Build complete summary email body with all answers
-    let emailBody = `שאלון לקוח: ${clientName}%0D%0Aתאריך: ${today}%0D%0A%0D%0A`;
-    emailBody += `=================%0D%0A%0D%0A`;
+    // Build styled and complete email body
+    let emailBody = '';
     
-    // Add all questions and answers
+    // Header
+    emailBody += `╔═══════════════════════════════════════════════════╗%0D%0A`;
+    emailBody += `║          שאלון לקוח - ${clientName}          ║%0D%0A`;
+    emailBody += `║          תאריך: ${today}          ║%0D%0A`;
+    emailBody += `╚═══════════════════════════════════════════════════╝%0D%0A%0D%0A`;
+    
+    // Group questions by section
+    let currentSection = -1;
+    let sectionNumber = 0;
+    
     allQuestions.forEach(q => {
-        if (answers[q.id] !== undefined && answers[q.id] !== '') {
+        const hasAnswer = answers[q.id] !== undefined && 
+                         answers[q.id] !== null && 
+                         answers[q.id] !== '' && 
+                         !(Array.isArray(answers[q.id]) && answers[q.id].length === 0);
+        
+        if (hasAnswer) {
+            // New section header
+            if (q.section !== currentSection) {
+                currentSection = q.section;
+                sectionNumber++;
+                
+                if (sectionNumber > 1) {
+                    emailBody += `%0D%0A`;
+                }
+                
+                emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%0D%0A`;
+                emailBody += `📋 ${q.sectionTitle || 'חלק ' + sectionNumber}%0D%0A`;
+                emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%0D%0A%0D%0A`;
+            }
+            
             let answerText = answers[q.id];
             
             // Format arrays
@@ -2396,16 +2423,20 @@ function sendFullEmail(clientEmail, clientName) {
                 answerText = answerText.join(', ');
             }
             
-            emailBody += `${q.text}%0D%0A`;
-            emailBody += `${answerText}%0D%0A%0D%0A`;
+            // Format the question and answer nicely
+            emailBody += `❓ ${q.text}%0D%0A`;
+            emailBody += `   ✅ ${answerText}%0D%0A%0D%0A`;
         }
     });
     
-    emailBody += `=================%0D%0A`;
-    emailBody += `סיום שאלון`;
+    // Footer
+    emailBody += `%0D%0A━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%0D%0A`;
+    emailBody += `📧 סיום שאלון%0D%0A`;
+    emailBody += `📞 ליצירת קשר: 052-8089808%0D%0A`;
+    emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
     
     // Create mailto with both recipient and cc (client gets copy)
-    const mailto = `mailto:roeir@ar-fo.co.il?cc=${clientEmail}&subject=שאלון לקוח: ${clientName} - ${today}&body=${emailBody}`;
+    const mailto = `mailto:roeir@ar-fo.co.il?cc=${clientEmail}&subject=📋 שאלון לקוח: ${clientName} - ${today}&body=${emailBody}`;
     
     // Open mailto - will open email client
     window.location.href = mailto;
