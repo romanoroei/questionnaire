@@ -1255,7 +1255,7 @@ body {
             <h2><i class="fas fa-shield-alt"></i> הודעת פרטיות</h2>
             
             <p style="font-size: 0.95rem; line-height: 1.7; margin: 1.5rem 0;">
-                המידע שתמסור ישמש למתן ייעוץ פיננסי מותאם אישית ויישמר באופן מאובטח במערכת.
+                המידע שתמסור ישמש למתן תכנון פיננסי מותאם אישית ויישמר באופן מאובטח במערכת.
             </p>
 
             <p style="font-size: 0.85rem; margin-bottom: 1.5rem; text-align: center;">
@@ -2346,108 +2346,40 @@ function showSummary() {
     scrollToTop();
 }
 
-async function sendEmail() {
+function sendEmail() {
     // Rebuild questions list to include all answered questions
     buildQuestionsList();
     
     const clientName = answers.fullName || 'לקוח';
+    const clientEmail = answers.email || '';
     
-    // Show loading message
-    const loadingModal = document.createElement('div');
-    loadingModal.className = 'modal';
-    loadingModal.innerHTML = `
+    // Send email directly (no API)
+    sendFullEmail(clientEmail, clientName);
+    
+    // Show success message
+    const successModal = document.createElement('div');
+    successModal.className = 'modal';
+    successModal.innerHTML = `
         <div class="modal-content">
-            <h2>שולח את השאלון...</h2>
-            <p>אנא המתן, השאלון נשמר במערכת</p>
-            <div style="text-align: center; margin-top: 1rem;">
-                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--gold-primary);"></i>
-            </div>
+            <h2><i class="fas fa-check-circle" style="color: #10b981;"></i> השאלון נשלח!</h2>
+            <p>תודה ${clientName}!</p>
+            <p>חלון המייל נפתח - אנא לחץ "שלח" בתוכנת המייל שלך כדי להשלים את השליחה.</p>
+            <p style="font-size: 0.85rem; color: #6b7280; margin-top: 1rem;">
+                <i class="fas fa-info-circle"></i> אם חלון המייל לא נפתח, אנא שלח דרך WhatsApp
+            </p>
+            <button onclick="location.reload()" class="modal-btn">סגור</button>
+            <button onclick="sendWhatsApp()" class="btn-secondary" style="width: 100%; margin-top: 0.5rem; background: #25D366 !important; color: white !important; border: none;">
+                <i class="fab fa-whatsapp"></i> או שלח ב-WhatsApp
+            </button>
         </div>
     `;
-    document.body.appendChild(loadingModal);
-    
-    try {
-        // Calculate risk average
-        const riskScores = [
-            answers.risk1, answers.risk2, answers.risk3,
-            answers.risk4, answers.risk5, answers.risk6
-        ].filter(score => score !== undefined && score !== '');
-        
-        const riskAverage = riskScores.length > 0 
-            ? (riskScores.reduce((a, b) => Number(a) + Number(b), 0) / riskScores.length).toFixed(2)
-            : null;
-        
-        // Prepare data for API
-        const responseData = {
-            ...answers,
-            submission_date: new Date().toISOString(),
-            risk_average: riskAverage
-        };
-        
-        // Send to API
-        const response = await fetch('tables/questionnaire_responses', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(responseData)
-        });
-        
-        if (!response.ok) {
-            throw new Error('שגיאה בשמירת הנתונים');
-        }
-        
-        const result = await response.json();
-        
-        // Send backup email notification
-        sendBackupEmail();
-        
-        // Remove loading modal
-        document.body.removeChild(loadingModal);
-        
-        // Show success message
-        const successModal = document.createElement('div');
-        successModal.className = 'modal';
-        successModal.innerHTML = `
-            <div class="modal-content">
-                <h2><i class="fas fa-check-circle" style="color: #10b981;"></i> השאלון נשלח בהצלחה!</h2>
-                <p>תודה ${clientName}, התשובות שלך נשמרו במערכת.</p>
-                <p>רועי יצור איתך קשר בהקדם האפשרי.</p>
-                <button onclick="location.reload()" class="modal-btn">סגור</button>
-            </div>
-        `;
-        document.body.appendChild(successModal);
-        
-    } catch (error) {
-        console.error('Error saving questionnaire:', error);
-        
-        // Remove loading modal
-        document.body.removeChild(loadingModal);
-        
-        // Show error message with fallback option
-        const errorModal = document.createElement('div');
-        errorModal.className = 'modal';
-        errorModal.innerHTML = `
-            <div class="modal-content warning-modal">
-                <h2><i class="fas fa-exclamation-triangle"></i> שגיאה בשמירה</h2>
-                <p>מצטערים, התרחשה שגיאה בשמירת השאלון.</p>
-                <p>אנא נסה שוב או שלח את התשובות דרך WhatsApp.</p>
-                <button onclick="location.reload()" class="modal-btn">נסה שוב</button>
-                <button onclick="sendWhatsApp()" class="modal-btn" style="background: #25D366 !important; margin-top: 0.5rem;">
-                    <i class="fab fa-whatsapp"></i> שלח ב-WhatsApp
-                </button>
-            </div>
-        `;
-        document.body.appendChild(errorModal);
-    }
+    document.body.appendChild(successModal);
 }
 
-function sendBackupEmail() {
+function sendFullEmail(clientEmail, clientName) {
     // Rebuild questions list to include all answered questions
     buildQuestionsList();
     
-    const clientEmail = answers.email || '';
-    const clientName = answers.fullName || 'לקוח';
     const today = new Date().toLocaleDateString('he-IL');
     
     // Build complete summary email body with all answers
@@ -2475,16 +2407,8 @@ function sendBackupEmail() {
     // Create mailto with both recipient and cc (client gets copy)
     const mailto = `mailto:roeir@ar-fo.co.il?cc=${clientEmail}&subject=שאלון לקוח: ${clientName} - ${today}&body=${emailBody}`;
     
-    // Open mailto in hidden iframe (won't interrupt user)
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = mailto;
-    document.body.appendChild(iframe);
-    
-    // Remove iframe after 2 seconds
-    setTimeout(() => {
-        document.body.removeChild(iframe);
-    }, 2000);
+    // Open mailto - will open email client
+    window.location.href = mailto;
 }
 
 function sendWhatsApp() {
