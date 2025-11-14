@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניהול שאלונים - רועי רומנו</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+/* ===== צבעי המותג ===== */
+:root {
+    --navy-primary: #1A2B3C;
+    --navy-secondary: #0f1a26;
+    --dark-gray: #2A3B4C;
+    --gold-primary: #D4AF37;
+    --gold-light: #E8C547;
+    --white: #FFFFFF;
+    --text-gray: #374151;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    direction: rtl;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header {
+    background: linear-gradient(135deg, var(--navy-primary) 0%, var(--navy-secondary) 100%);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--gold-primary);
+}
+
+.header h1 {
+    color: var(--white);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header p {
+    color: var(--gold-light);
+    font-size: 1rem;
+}
+
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--gold-primary);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--navy-primary), var(--dark-gray));
+    color: var(--gold-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-content h3 {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.stat-content p {
+    color: var(--navy-primary);
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.controls {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--gold-primary);
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.search-box {
+    flex: 1;
+    min-width: 250px;
+    position: relative;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 2px solid var(--gold-primary);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--gold-light);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.search-box i {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold-primary);
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--gold-primary), var(--gold-light));
+    color: var(--navy-primary);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, var(--gold-light), var(--gold-primary));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+}
+
+.btn-secondary {
+    background: var(--white);
+    color: var(--navy-primary);
+    border: 2px solid var(--gold-primary);
+}
+
+.btn-secondary:hover {
+    background: var(--gold-light);
+    transform: translateY(-2px);
+}
+
+.responses-table {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--gold-primary);
+    overflow: hidden;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: linear-gradient(135deg, var(--navy-primary) 0%, var(--navy-secondary) 100%);
+}
+
+thead th {
+    color: var(--white);
+    padding: 1rem;
+    text-align: right;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+tbody tr {
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+    transition: background 0.3s ease;
+    cursor: pointer;
+}
+
+tbody tr:hover {
+    background: rgba(212, 175, 55, 0.05);
+}
+
+tbody td {
+    padding: 1rem;
+    color: var(--text-gray);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-new {
+    background: #10b981;
+    color: white;
+}
+
+.status-viewed {
+    background: #6b7280;
+    color: white;
+}
+
+.risk-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.risk-low {
+    background: #10b981;
+    color: white;
+}
+
+.risk-medium {
+    background: #f59e0b;
+    color: white;
+}
+
+.risk-high {
+    background: #ef4444;
+    color: white;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: 12px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border: 2px solid var(--gold-primary);
+    position: relative;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, var(--navy-primary) 0%, var(--navy-secondary) 100%);
+    padding: 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 2px solid var(--gold-primary);
+}
+
+.modal-header h2 {
+    color: var(--white);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.modal-header p {
+    color: var(--gold-light);
+    font-size: 0.9rem;
+}
+
+.close-modal {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: var(--white);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.close-modal:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.response-section {
+    margin-bottom: 2rem;
+}
+
+.response-section h3 {
+    color: var(--navy-primary);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--gold-primary);
+}
+
+.response-item {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: rgba(212, 175, 55, 0.05);
+    border-right: 4px solid var(--gold-primary);
+    border-radius: 4px;
+}
+
+.response-item strong {
+    display: block;
+    color: var(--navy-primary);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.response-item span {
+    color: var(--text-gray);
+    font-size: 1rem;
+}
+
+.loading {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-gray);
+}
+
+.loading i {
+    font-size: 3rem;
+    color: var(--gold-primary);
+    margin-bottom: 1rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-gray);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--gold-primary);
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    color: var(--navy-primary);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    background: var(--white);
+    border-radius: 12px;
+    margin-top: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--gold-primary);
+}
+
+.pagination button {
+    padding: 0.5rem 1rem;
+    border: 2px solid var(--gold-primary);
+    background: var(--white);
+    color: var(--navy-primary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.pagination button:hover:not(:disabled) {
+    background: var(--gold-light);
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.pagination span {
+    color: var(--navy-primary);
+    font-weight: 600;
+    margin: 0 1rem;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 1rem 0.5rem;
+    }
+    
+    .header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .stats-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .controls {
+        flex-direction: column;
+    }
+    
+    .search-box {
+        width: 100%;
+    }
+    
+    .table-wrapper {
+        overflow-x: auto;
+    }
+    
+    table {
+        font-size: 0.85rem;
+    }
+    
+    thead th,
+    tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" style="position: relative;">
+            <button onclick="logout()" style="position: absolute; top: 1rem; left: 1rem; padding: 0.5rem 1rem; border: 2px solid var(--gold-primary); background: rgba(255,255,255,0.1); color: var(--white); border-radius: 6px; cursor: pointer; transition: all 0.3s ease; font-size: 0.9rem; font-weight: 600;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                <i class="fas fa-sign-out-alt"></i> התנתק
+            </button>
+            <h1>
+                <i class="fas fa-chart-line"></i>
+                לוח ניהול שאלונים
+            </h1>
+            <p>רועי רומנו - מתכנן פיננסי | צפייה וניהול כל תשובות הלקוחות</p>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>סך הכל שאלונים</h3>
+                    <p id="totalCount">0</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>שאלונים היום</h3>
+                    <p id="todayCount">0</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>ממוצע רמת סיכון</h3>
+                    <p id="avgRisk">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="חפש לפי שם, מייל או טלפון...">
+            </div>
+            <button class="btn btn-primary" onclick="loadResponses()">
+                <i class="fas fa-sync-alt"></i> רענן
+            </button>
+            <button class="btn btn-secondary" onclick="exportToCSV()">
+                <i class="fas fa-download"></i> ייצוא Excel
+            </button>
+        </div>
+
+        <div class="responses-table">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>תאריך</th>
+                            <th>שם מלא</th>
+                            <th>מייל</th>
+                            <th>טלפון</th>
+                            <th>רמת סיכון</th>
+                            <th>מצב תעסוקתי</th>
+                            <th>פעולות</th>
+                        </tr>
+                    </thead>
+                    <tbody id="responsesTableBody">
+                        <tr>
+                            <td colspan="7" class="loading">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>טוען נתונים...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="pagination" id="pagination" style="display: none;">
+            <button id="prevPage" onclick="changePage(-1)">
+                <i class="fas fa-chevron-right"></i> הקודם
+            </button>
+            <span id="pageInfo">עמוד 1 מתוך 1</span>
+            <button id="nextPage" onclick="changePage(1)">
+                הבא <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal for viewing full response -->
+    <div class="modal" id="responseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="close-modal" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+                <h2 id="modalTitle">פרטי שאלון</h2>
+                <p id="modalSubtitle"></p>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+// ===== PASSWORD PROTECTION =====
+// שנה את הסיסמה כאן לפני פרסום!
+const ADMIN_PASSWORD = "Roei2024!";
+
+// Check password on page load
+(function() {
+    const isAuthenticated = sessionStorage.getItem('adminAuthenticated');
+    
+    if (isAuthenticated !== 'true') {
+        let attempts = 0;
+        const maxAttempts = 3;
+        
+        while (attempts < maxAttempts) {
+            const password = prompt(`🔐 הזן סיסמת מנהל:\n\n(ניסיון ${attempts + 1} מתוך ${maxAttempts})`);
+            
+            if (password === null) {
+                // User cancelled
+                alert('⚠️ גישה נדחתה');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            if (password === ADMIN_PASSWORD) {
+                sessionStorage.setItem('adminAuthenticated', 'true');
+                break;
+            } else {
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    alert('❌ סיסמה שגויה 3 פעמים. גישה נחסמה.');
+                    window.location.href = 'index.html';
+                    return;
+                } else {
+                    alert(`❌ סיסמה שגויה. נותרו ${maxAttempts - attempts} ניסיונות`);
+                }
+            }
+        }
+    }
+})();
+
+// Add logout functionality
+function logout() {
+    if (confirm('האם אתה בטוח שברצונך להתנתק?')) {
+        sessionStorage.removeItem('adminAuthenticated');
+        window.location.href = 'index.html';
+    }
+}
+
+// Clear authentication on browser close (security)
+window.addEventListener('beforeunload', () => {
+    // Optional: uncomment to force re-login on browser close
+    // sessionStorage.removeItem('adminAuthenticated');
+});
+
+let allResponses = [];
+let filteredResponses = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+
+// Load responses on page load
+document.addEventListener('DOMContentLoaded', () => {
+    loadResponses();
+    
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        filteredResponses = allResponses.filter(response => {
+            return (
+                (response.fullName || '').toLowerCase().includes(searchTerm) ||
+                (response.email || '').toLowerCase().includes(searchTerm) ||
+                (response.phoneNumber || '').toLowerCase().includes(searchTerm)
+            );
+        });
+        currentPage = 1;
+        renderTable();
+    });
+});
+
+async function loadResponses() {
+    try {
+        const response = await fetch('tables/questionnaire_responses?limit=1000&sort=-created_at');
+        
+        if (!response.ok) {
+            throw new Error('Failed to load responses');
+        }
+        
+        const data = await response.json();
+        allResponses = data.data || [];
+        filteredResponses = allResponses;
+        
+        updateStats();
+        renderTable();
+        
+    } catch (error) {
+        console.error('Error loading responses:', error);
+        document.getElementById('responsesTableBody').innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>שגיאה בטעינת הנתונים</h3>
+                    <p>אנא נסה שוב מאוחר יותר</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function updateStats() {
+    // Total count
+    document.getElementById('totalCount').textContent = allResponses.length;
+    
+    // Today count
+    const today = new Date().toDateString();
+    const todayCount = allResponses.filter(r => {
+        const responseDate = new Date(r.created_at).toDateString();
+        return responseDate === today;
+    }).length;
+    document.getElementById('todayCount').textContent = todayCount;
+    
+    // Average risk
+    const riskScores = allResponses
+        .map(r => r.risk_average)
+        .filter(r => r !== null && r !== undefined);
+    
+    if (riskScores.length > 0) {
+        const avgRisk = (riskScores.reduce((a, b) => Number(a) + Number(b), 0) / riskScores.length).toFixed(1);
+        document.getElementById('avgRisk').textContent = avgRisk;
+    } else {
+        document.getElementById('avgRisk').textContent = 'N/A';
+    }
+}
+
+function renderTable() {
+    const tbody = document.getElementById('responsesTableBody');
+    
+    if (filteredResponses.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>אין שאלונים למעקב</h3>
+                    <p>כאשר לקוחות ישלחו שאלונים, הם יופיעו כאן</p>
+                </td>
+            </tr>
+        `;
+        document.getElementById('pagination').style.display = 'none';
+        return;
+    }
+    
+    // Pagination
+    const totalPages = Math.ceil(filteredResponses.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageResponses = filteredResponses.slice(startIndex, endIndex);
+    
+    // Render rows
+    tbody.innerHTML = pageResponses.map(response => {
+        const date = new Date(response.created_at).toLocaleDateString('he-IL', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        const riskBadge = getRiskBadge(response.risk_average);
+        const employmentStatus = Array.isArray(response.employmentStatus) 
+            ? response.employmentStatus.join(', ') 
+            : (response.employmentStatus || 'לא צוין');
+        
+        return `
+            <tr onclick="viewResponse('${response.id}')">
+                <td>${date}</td>
+                <td><strong>${response.fullName || 'לא צוין'}</strong></td>
+                <td>${response.email || 'לא צוין'}</td>
+                <td>${response.phoneNumber || 'לא צוין'}</td>
+                <td>${riskBadge}</td>
+                <td>${employmentStatus}</td>
+                <td>
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); viewResponse('${response.id}')" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;">
+                        <i class="fas fa-eye"></i> צפייה
+                    </button>
+                    <button class="btn" onclick="event.stopPropagation(); deleteResponse('${response.id}', '${response.fullName || 'לקוח'}')" style="padding: 0.5rem 0.75rem; font-size: 0.85rem; background: #ef4444; color: white; margin-right: 0.5rem;">
+                        <i class="fas fa-trash"></i> מחק
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Update pagination
+    document.getElementById('pagination').style.display = totalPages > 1 ? 'flex' : 'none';
+    document.getElementById('pageInfo').textContent = `עמוד ${currentPage} מתוך ${totalPages}`;
+    document.getElementById('prevPage').disabled = currentPage === 1;
+    document.getElementById('nextPage').disabled = currentPage === totalPages;
+}
+
+function getRiskBadge(riskAverage) {
+    if (!riskAverage) return '<span class="risk-badge" style="background: #6b7280;">לא צוין</span>';
+    
+    const risk = Number(riskAverage);
+    if (risk <= 3) {
+        return `<span class="risk-badge risk-low">${risk} - נמוכה</span>`;
+    } else if (risk <= 6) {
+        return `<span class="risk-badge risk-medium">${risk} - בינונית</span>`;
+    } else {
+        return `<span class="risk-badge risk-high">${risk} - גבוהה</span>`;
+    }
+}
+
+function changePage(direction) {
+    currentPage += direction;
+    renderTable();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function viewResponse(responseId) {
+    const response = allResponses.find(r => r.id === responseId);
+    if (!response) return;
+    
+    // Set modal title
+    document.getElementById('modalTitle').textContent = `שאלון: ${response.fullName || 'לקוח'}`;
+    const date = new Date(response.created_at).toLocaleDateString('he-IL', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    document.getElementById('modalSubtitle').textContent = `נשלח בתאריך: ${date}`;
+    
+    // Build modal content
+    let modalContent = '';
+    
+    // Section 1: פרטים אישיים
+    modalContent += '<div class="response-section">';
+    modalContent += '<h3><i class="fas fa-user"></i> פרטים אישיים</h3>';
+    modalContent += buildResponseItem('שם מלא', response.fullName);
+    modalContent += buildResponseItem('כתובת מייל', response.email);
+    modalContent += buildResponseItem('מספר טלפון', response.phoneNumber);
+    modalContent += buildResponseItem('מספר זהות', response.idNumber);
+    modalContent += buildResponseItem('תאריך לידה', response.birthDate);
+    modalContent += buildResponseItem('כתובת מגורים', response.address);
+    modalContent += buildResponseItem('מצב משפחתי', response.maritalStatus);
+    modalContent += buildResponseItem('ילדים', response.hasChildren);
+    if (response.childrenAges) {
+        modalContent += buildResponseItem('גילאי הילדים', response.childrenAges);
+    }
+    modalContent += '</div>';
+    
+    // Section 2: רמת סיכון
+    if (response.risk1 || response.risk2 || response.risk3) {
+        modalContent += '<div class="response-section">';
+        modalContent += '<h3><i class="fas fa-chart-line"></i> שאלון רמת סיכון</h3>';
+        modalContent += buildResponseItem('שאלה 1', response.risk1);
+        modalContent += buildResponseItem('שאלה 2', response.risk2);
+        modalContent += buildResponseItem('שאלה 3', response.risk3);
+        modalContent += buildResponseItem('שאלה 4', response.risk4);
+        modalContent += buildResponseItem('שאלה 5', response.risk5);
+        modalContent += buildResponseItem('שאלה 6', response.risk6);
+        modalContent += buildResponseItem('ממוצע רמת סיכון', response.risk_average, true);
+        modalContent += '</div>';
+    }
+    
+    // Section 3: מצב תעסוקתי ועיסוק
+    modalContent += '<div class="response-section">';
+    modalContent += '<h3><i class="fas fa-briefcase"></i> מצב תעסוקתי ועיסוק</h3>';
+    modalContent += buildResponseItem('מצב תעסוקתי', 
+        Array.isArray(response.employmentStatus) ? response.employmentStatus.join(', ') : response.employmentStatus);
+    
+    if (response.employerName) {
+        modalContent += buildResponseItem('שם המעסיק', response.employerName);
+    }
+    if (response.currentOccupationEmployee) {
+        modalContent += buildResponseItem('עיסוק/תפקיד נוכחי', response.currentOccupationEmployee);
+    }
+    if (response.businessName) {
+        modalContent += buildResponseItem('שם העסק', response.businessName);
+        modalContent += buildResponseItem('כתובת העסק', response.businessAddress);
+        modalContent += buildResponseItem('מחזור הכנסות שנתי', response.annualRevenue);
+        modalContent += buildResponseItem('תחום עיסוק', response.businessField);
+    }
+    modalContent += '</div>';
+    
+    // Section 4: השקעות וחיסכון
+    modalContent += '<div class="response-section">';
+    modalContent += '<h3><i class="fas fa-piggy-bank"></i> השקעות וחיסכון</h3>';
+    modalContent += buildResponseItem('מקור הכספים', 
+        Array.isArray(response.fundsSource) ? response.fundsSource.join(', ') : response.fundsSource);
+    modalContent += buildResponseItem('סכום הפקדה שנתי', response.annualDeposits);
+    modalContent += buildResponseItem('תדירות הפקדות', response.depositFrequency);
+    modalContent += buildResponseItem('טווח השקעה', response.investmentHorizon);
+    modalContent += buildResponseItem('מטרת החיסכון', 
+        Array.isArray(response.savingsGoals) ? response.savingsGoals.join(', ') : response.savingsGoals);
+    modalContent += buildResponseItem('מצב כספי', response.financialStatus);
+    if (response.moneyManagement) {
+        modalContent += buildResponseItem('ניהול כסף נכון', response.moneyManagement);
+    }
+    modalContent += '</div>';
+    
+    // Section 5: מידע נוסף
+    modalContent += '<div class="response-section">';
+    modalContent += '<h3><i class="fas fa-info-circle"></i> מידע נוסף</h3>';
+    modalContent += buildResponseItem('אזרחות/תושבות ארה"ב', response.usCitizen);
+    modalContent += buildResponseItem('תושב מס במדינה אחרת', response.otherTaxResident);
+    if (response.taxCountry) {
+        modalContent += buildResponseItem('מדינה לצרכי מס', response.taxCountry);
+        modalContent += buildResponseItem('מספר TIN', response.tin);
+    }
+    if (response.taxRefundCheck) {
+        modalContent += buildResponseItem('בדיקת החזרי מס', response.taxRefundCheck);
+    }
+    modalContent += buildResponseItem('מטרת הליווי הפיננסי', 
+        Array.isArray(response.consultingGoals) ? response.consultingGoals.join(', ') : response.consultingGoals);
+    modalContent += '</div>';
+    
+    // Add delete button at bottom
+    modalContent += `
+        <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid rgba(212, 175, 55, 0.3);">
+            <button onclick="deleteResponse('${response.id}', '${response.fullName || 'לקוח'}')" style="padding: 0.75rem 2rem; border: none; border-radius: 8px; background: #ef4444; color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fas fa-trash"></i> מחק שאלון זה
+            </button>
+            <p style="font-size: 0.8rem; color: #6b7280; margin-top: 0.5rem;">
+                <i class="fas fa-exclamation-triangle"></i> פעולת מחיקה אינה הפיכה
+            </p>
+        </div>
+    `;
+    
+    document.getElementById('modalBody').innerHTML = modalContent;
+    document.getElementById('responseModal').classList.add('active');
+}
+
+function buildResponseItem(label, value, highlight = false) {
+    if (!value && value !== 0) return '';
+    
+    const style = highlight ? 'background: rgba(212, 175, 55, 0.15); border-right: 4px solid var(--gold-light);' : '';
+    return `
+        <div class="response-item" style="${style}">
+            <strong>${label}:</strong>
+            <span>${value}</span>
+        </div>
+    `;
+}
+
+function closeModal() {
+    document.getElementById('responseModal').classList.remove('active');
+}
+
+async function deleteResponse(responseId, clientName) {
+    // Confirmation dialog
+    const confirmed = confirm(`⚠️ האם אתה בטוח שברצונך למחוק את השאלון של:\n\n${clientName}\n\nפעולה זו אינה הפיכה!`);
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    // Second confirmation for safety
+    const doubleConfirm = confirm(`🔴 אישור סופי:\n\nמחיקת הנתונים של ${clientName} תהיה קבועה.\n\nהאם להמשיך?`);
+    
+    if (!doubleConfirm) {
+        return;
+    }
+    
+    try {
+        // Show loading state
+        const loadingDiv = document.createElement('div');
+        loadingDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 9999; text-align: center;';
+        loadingDiv.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--gold-primary);"></i><p style="margin-top: 1rem;">מוחק...</p>';
+        document.body.appendChild(loadingDiv);
+        
+        // Delete from API
+        const response = await fetch(`tables/questionnaire_responses/${responseId}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            throw new Error('שגיאה במחיקת הנתונים');
+        }
+        
+        // Remove loading
+        document.body.removeChild(loadingDiv);
+        
+        // Show success message
+        alert(`✅ השאלון של ${clientName} נמחק בהצלחה`);
+        
+        // Close modal if open
+        closeModal();
+        
+        // Reload data
+        await loadResponses();
+        
+    } catch (error) {
+        console.error('Error deleting response:', error);
+        alert('❌ שגיאה במחיקת השאלון. אנא נסה שוב.');
+    }
+}
+
+async function deleteResponse(responseId, clientName) {
+    // Confirm deletion
+    const confirmed = confirm(`❌ האם אתה בטוח שברצונך למחוק את השאלון של:\n\n"${clientName}"\n\nפעולה זו לא ניתנת לביטול!`);
+    
+    if (!confirmed) return;
+    
+    // Double confirmation for safety
+    const doubleConfirm = confirm(`⚠️ אישור סופי!\n\nהנתונים של "${clientName}" יימחקו לצמיתות.\nהמשך?`);
+    
+    if (!doubleConfirm) return;
+    
+    try {
+        // Show loading
+        const loadingModal = document.createElement('div');
+        loadingModal.className = 'modal active';
+        loadingModal.innerHTML = `
+            <div class="modal-content">
+                <h2>מוחק נתונים...</h2>
+                <p>אנא המתן</p>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--gold-primary);"></i>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(loadingModal);
+        
+        // Delete from API
+        const response = await fetch(`tables/questionnaire_responses/${responseId}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            throw new Error('שגיאה במחיקת הנתונים');
+        }
+        
+        // Remove loading modal
+        document.body.removeChild(loadingModal);
+        
+        // Show success message
+        const successModal = document.createElement('div');
+        successModal.className = 'modal active';
+        successModal.innerHTML = `
+            <div class="modal-content">
+                <h2 style="color: #10b981;"><i class="fas fa-check-circle"></i> נמחק בהצלחה</h2>
+                <p>השאלון של <strong>${clientName}</strong> נמחק מהמערכת</p>
+                <button onclick="this.closest('.modal').remove(); loadResponses();" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                    סגור
+                </button>
+            </div>
+        `;
+        document.body.appendChild(successModal);
+        
+    } catch (error) {
+        console.error('Error deleting response:', error);
+        
+        // Show error message
+        alert('❌ שגיאה במחיקת הנתונים. אנא נסה שוב.');
+    }
+}
+
+function exportToCSV() {
+    if (filteredResponses.length === 0) {
+        alert('אין נתונים לייצוא');
+        return;
+    }
+    
+    // CSV Headers
+    const headers = [
+        'תאריך',
+        'שם מלא',
+        'מייל',
+        'טלפון',
+        'ת.ז.',
+        'תאריך לידה',
+        'כתובת',
+        'מצב משפחתי',
+        'ילדים',
+        'גילאי ילדים',
+        'מצב תעסוקתי',
+        'שם מעסיק',
+        'תפקיד',
+        'שם עסק',
+        'כתובת עסק',
+        'מחזור שנתי',
+        'תחום עיסוק',
+        'מקור כספים',
+        'הפקדה שנתית',
+        'תדירות הפקדות',
+        'טווח השקעה',
+        'מטרת חיסכון',
+        'מצב כספי',
+        'ניהול נכון',
+        'בדיקת החזרי מס',
+        'מטרת ליווי',
+        'אזרחות ארה"ב',
+        'תושב מס אחר',
+        'מדינת מס',
+        'TIN',
+        'רמת סיכון ממוצע',
+        'סיכון 1',
+        'סיכון 2',
+        'סיכון 3',
+        'סיכון 4',
+        'סיכון 5',
+        'סיכון 6'
+    ];
+    
+    // CSV Rows
+    const rows = filteredResponses.map(r => {
+        const date = new Date(r.created_at).toLocaleDateString('he-IL');
+        return [
+            date,
+            r.fullName || '',
+            r.email || '',
+            r.phoneNumber || '',
+            r.idNumber || '',
+            r.birthDate || '',
+            r.address || '',
+            r.maritalStatus || '',
+            r.hasChildren || '',
+            r.childrenAges || '',
+            Array.isArray(r.employmentStatus) ? r.employmentStatus.join('; ') : (r.employmentStatus || ''),
+            r.employerName || '',
+            r.currentOccupationEmployee || '',
+            r.businessName || '',
+            r.businessAddress || '',
+            r.annualRevenue || '',
+            r.businessField || '',
+            Array.isArray(r.fundsSource) ? r.fundsSource.join('; ') : (r.fundsSource || ''),
+            r.annualDeposits || '',
+            r.depositFrequency || '',
+            r.investmentHorizon || '',
+            Array.isArray(r.savingsGoals) ? r.savingsGoals.join('; ') : (r.savingsGoals || ''),
+            r.financialStatus || '',
+            r.moneyManagement || '',
+            r.taxRefundCheck || '',
+            Array.isArray(r.consultingGoals) ? r.consultingGoals.join('; ') : (r.consultingGoals || ''),
+            r.usCitizen || '',
+            r.otherTaxResident || '',
+            r.taxCountry || '',
+            r.tin || '',
+            r.risk_average || '',
+            r.risk1 || '',
+            r.risk2 || '',
+            r.risk3 || '',
+            r.risk4 || '',
+            r.risk5 || '',
+            r.risk6 || ''
+        ].map(v => `"${String(v).replace(/"/g, '""')}"`);
+    });
+    
+    // Build CSV with BOM for Excel Hebrew support
+    const BOM = '\uFEFF';
+    const csvContent = BOM + [headers, ...rows].map(row => row.join(',')).join('\n');
+    
+    // Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `questionnaires_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+    </script>
+</body>
+</html>
