@@ -1252,11 +1252,21 @@ body {
     <!-- Privacy Modal -->
     <div id="privacyModal" class="modal">
         <div class="modal-content">
-            <h2>הודעת פרטיות</h2>
-            <p style="font-weight: 600; color: var(--navy-primary); background: rgba(212, 175, 55, 0.1); padding: 0.6rem; border-radius: 6px; border-right: 3px solid var(--gold-primary);">בסיום השאלון, תתאפשר שליחה של התשובות באופן יזום אלי למייל להמשך טיפול אישי.</p>
-            <p>האתר איננו אוסף נתונים או מטמיע עוגיות מעקב. האתר מאוחסן בשרתי GitHub Pages, ייתכן ש-GitHub משתמשים בעוגיות טכניות בלבד לצורכי אבטחה וביצועים.</p>
-            <p style="font-size: 0.75rem; margin-top: 1rem;"><a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" style="color: var(--gold-primary);">מדיניות הפרטיות של GitHub</a></p>
-            <button class="modal-btn" onclick="acceptPrivacy()">אישור והמשך</button>
+            <h2><i class="fas fa-shield-alt"></i> הודעת פרטיות</h2>
+            
+            <p style="font-size: 0.95rem; line-height: 1.7; margin: 1.5rem 0;">
+                המידע שתמסור ישמש למתן ייעוץ פיננסי מותאם אישית ויישמר באופן מאובטח במערכת.
+            </p>
+
+            <p style="font-size: 0.85rem; margin-bottom: 1.5rem; text-align: center;">
+                <a href="privacy-policy.html" target="_blank" style="color: var(--gold-primary); font-weight: 600; text-decoration: underline;">
+                    <i class="fas fa-external-link-alt"></i> קרא מדיניות פרטיות מלאה
+                </a>
+            </p>
+
+            <button class="modal-btn" onclick="acceptPrivacy()">
+                <i class="fas fa-check"></i> הבנתי, המשך לשאלון
+            </button>
         </div>
     </div>
 
@@ -1286,16 +1296,14 @@ body {
             
             <div class="summary-actions" style="justify-content: center; margin-bottom: 2rem;">
                 <button class="btn-primary" onclick="sendEmail()">
-                    <i class="fas fa-envelope"></i> לשליחת התשובות במייל
+                    <i class="fas fa-paper-plane"></i> שלח שאלון
                 </button>
                 <button class="btn-secondary" onclick="editAnswers()">
                     <i class="fas fa-edit"></i> ערוך תשובות
                 </button>
             </div>
             
-            <h2 style="text-align: center; color: var(--navy-primary); font-size: 1.8rem; margin-bottom: 1.5rem;">סיכום התשובות</h2>
-            
-            <div id="summaryContent"></div>
+            <div id="summaryContent" style="display: none;"></div>
         </div>
 
         <!-- Edit Container -->
@@ -1417,21 +1425,7 @@ const questions = [
         section: 2,
         sectionTitle: "הכר את הלקוח",
         sectionDesc: "מידע זה נדרש על פי חוק למניעת הלבנת הון ומימון טרור. כל המידע נשמר בסודיות מלאה ומשמש אך ורק לצרכי תיעוד והתאמת המסמכים הנדרשים.",
-        id: "foreignResident",
-        text: "האם הנך מוגדר כתושב חוץ?",
-        type: "toggle",
-        icon: "fa-globe",
-        required: true
-    },
-    {
-        section: 2,
-        id: "publicOfficial",
-        text: "האם אתה או בן משפחתך או שותף עסקי שלך מכהן או כיהן בעבר בתפקיד ציבורי בכיר בארץ או מחוץ לארץ בחמש שנים האחרונות?",
-        type: "toggle",
-        icon: "fa-landmark",
-        required: true
-    },
-    {
+        id: "employmentStatus",
         section: 2,
         id: "employmentStatus",
         text: "מצב תעסוקתי? (אפשר לסמן כמה)",
@@ -1556,13 +1550,13 @@ const questions = [
         options: [
             "משכורת",
             "חסכונות",
+            "ניוד מקופה אחרת",
             "ירושה",
             "זכיה",
             "מתנה",
             "פיצויים",
             "מכירת נכס",
-            "תקבולים מהעסק",
-            "ניוד מקופה אחרת"
+            "תקבולים מהעסק"
         ],
         required: true
     },
@@ -1605,6 +1599,9 @@ const questions = [
         text: "סכום הפקדות שנתיות צפויות בתכנית",
         type: "number",
         icon: "fa-piggy-bank",
+        conditional: (answers) => {
+            return !answers.fundsSource || answers.fundsSource.length !== 1 || !answers.fundsSource.includes("ניוד מקופה אחרת");
+        },
         required: true
     },
     {
@@ -1614,12 +1611,15 @@ const questions = [
         type: "radio",
         icon: "fa-calendar",
         options: ["חודשי", "רבעוני", "שנתי", "חד פעמי", "ללא הפקדות/ניוד בלבד"],
+        conditional: (answers) => {
+            return !answers.fundsSource || answers.fundsSource.length !== 1 || !answers.fundsSource.includes("ניוד מקופה אחרת");
+        },
         required: true
     },
     {
         section: 2,
         id: "investmentHorizon",
-        text: "טווח השקעה בשנים?",
+        text: "מה טווח ההשקעה הצפוי (בשנים)?",
         type: "radio",
         icon: "fa-hourglass-half",
         options: [
@@ -1631,50 +1631,10 @@ const questions = [
     },
     {
         section: 2,
-        id: "foreignTransfers",
-        text: "האם צפויות להיות הפקדות או משיכות למדינה זרה?",
-        type: "toggle",
-        icon: "fa-plane",
-        required: true
-    },
-    {
-        section: 2,
-        id: "upcomingWithdrawals",
-        text: "האם ידוע לך על משיכות צפויות בשנה הקרובה?",
-        type: "toggle",
-        icon: "fa-hand-holding-usd",
-        required: true
-    },
-    {
-        section: 2,
-        id: "financialRefusal",
-        text: "האם גוף פיננסי סירב להעניק לך שירותים מסיבות הקשורות באיסור הלבנת הון או מימון טרור בעבר?",
-        type: "toggle",
-        icon: "fa-ban",
-        required: true
-    },
-    {
-        section: 2,
-        id: "actingSelf",
-        text: "האם הכסף בחשבון מוחזק בעבור אדם אחר או שהנך מבצע פעילות בעבור אדם אחר או שאדם אחר מכוון את הפעילות בחשבון?",
-        type: "toggle",
-        icon: "fa-user-check",
-        required: true
-    },
-    {
-        section: 2,
         id: "usCitizen",
-        text: "האם אתה אזרח ארה\"ב?",
+        text: "האם יש לך אזרחות/תושבות ארה\"ב?",
         type: "toggle",
         icon: "fa-flag-usa",
-        required: true
-    },
-    {
-        section: 2,
-        id: "usTaxResident",
-        text: "האם אתה תושב ארה\"ב לצרכי מס?",
-        type: "toggle",
-        icon: "fa-file-invoice-dollar",
         required: true
     },
     {
@@ -1760,14 +1720,6 @@ const questions = [
     },
     {
         section: 3,
-        id: "loanPayments",
-        text: "האם יש לך החזרי הלוואות?",
-        type: "toggle",
-        icon: "fa-credit-card",
-        required: true
-    },
-    {
-        section: 3,
         id: "financialStatus",
         text: "איך היית מגדיר את מצבך הכספי בדרך כלל?",
         type: "radio",
@@ -1795,12 +1747,15 @@ const questions = [
         text: "האם ביצעת בדיקה להחזרי מס בשנים האחרונות?",
         type: "toggle",
         icon: "fa-receipt",
+        conditional: (answers) => {
+            return !answers.employmentStatus || !answers.employmentStatus.includes("עצמאי");
+        },
         required: true
     },
     {
         section: 3,
         id: "consultingGoals",
-        text: "מה מטרת הליווי הפיננסי (אפשר לסמן כמה)",
+        text: "מה חשוב לך להשיג בליווי הפיננסי?",
         type: "checkbox",
         icon: "fa-hands-helping",
         options: [
@@ -2262,6 +2217,13 @@ function goNext(autoAdvance = false) {
             return;
         }
         
+        if (question.type === 'email' && answers[question.id]) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(answers[question.id])) {
+                alert('כתובת המייל אינה תקינה. אנא הזן כתובת מייל חוקית');
+                return;
+            }
+        }
         
         if (question.type === 'checkbox' && answers[question.id].length === 0) {
             alert('יש לבחור לפחות אפשרות אחת');
@@ -2384,7 +2346,103 @@ function showSummary() {
     scrollToTop();
 }
 
-function sendEmail() {
+async function sendEmail() {
+    // Rebuild questions list to include all answered questions
+    buildQuestionsList();
+    
+    const clientName = answers.fullName || 'לקוח';
+    
+    // Show loading message
+    const loadingModal = document.createElement('div');
+    loadingModal.className = 'modal';
+    loadingModal.innerHTML = `
+        <div class="modal-content">
+            <h2>שולח את השאלון...</h2>
+            <p>אנא המתן, השאלון נשמר במערכת</p>
+            <div style="text-align: center; margin-top: 1rem;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--gold-primary);"></i>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(loadingModal);
+    
+    try {
+        // Calculate risk average
+        const riskScores = [
+            answers.risk1, answers.risk2, answers.risk3,
+            answers.risk4, answers.risk5, answers.risk6
+        ].filter(score => score !== undefined && score !== '');
+        
+        const riskAverage = riskScores.length > 0 
+            ? (riskScores.reduce((a, b) => Number(a) + Number(b), 0) / riskScores.length).toFixed(2)
+            : null;
+        
+        // Prepare data for API
+        const responseData = {
+            ...answers,
+            submission_date: new Date().toISOString(),
+            risk_average: riskAverage
+        };
+        
+        // Send to API
+        const response = await fetch('tables/questionnaire_responses', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(responseData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('שגיאה בשמירת הנתונים');
+        }
+        
+        const result = await response.json();
+        
+        // Send backup email notification
+        sendBackupEmail();
+        
+        // Remove loading modal
+        document.body.removeChild(loadingModal);
+        
+        // Show success message
+        const successModal = document.createElement('div');
+        successModal.className = 'modal';
+        successModal.innerHTML = `
+            <div class="modal-content">
+                <h2><i class="fas fa-check-circle" style="color: #10b981;"></i> השאלון נשלח בהצלחה!</h2>
+                <p>תודה ${clientName}, התשובות שלך נשמרו במערכת.</p>
+                <p>רועי יצור איתך קשר בהקדם האפשרי.</p>
+                <button onclick="location.reload()" class="modal-btn">סגור</button>
+            </div>
+        `;
+        document.body.appendChild(successModal);
+        
+    } catch (error) {
+        console.error('Error saving questionnaire:', error);
+        
+        // Remove loading modal
+        document.body.removeChild(loadingModal);
+        
+        // Show error message with fallback option
+        const errorModal = document.createElement('div');
+        errorModal.className = 'modal';
+        errorModal.innerHTML = `
+            <div class="modal-content warning-modal">
+                <h2><i class="fas fa-exclamation-triangle"></i> שגיאה בשמירה</h2>
+                <p>מצטערים, התרחשה שגיאה בשמירת השאלון.</p>
+                <p>אנא נסה שוב או שלח את התשובות דרך WhatsApp.</p>
+                <button onclick="location.reload()" class="modal-btn">נסה שוב</button>
+                <button onclick="sendWhatsApp()" class="modal-btn" style="background: #25D366 !important; margin-top: 0.5rem;">
+                    <i class="fab fa-whatsapp"></i> שלח ב-WhatsApp
+                </button>
+            </div>
+        `;
+        document.body.appendChild(errorModal);
+    }
+}
+
+function sendBackupEmail() {
     // Rebuild questions list to include all answered questions
     buildQuestionsList();
     
@@ -2392,22 +2450,41 @@ function sendEmail() {
     const clientName = answers.fullName || 'לקוח';
     const today = new Date().toLocaleDateString('he-IL');
     
+    // Build complete summary email body with all answers
     let emailBody = `שאלון לקוח: ${clientName}%0D%0Aתאריך: ${today}%0D%0A%0D%0A`;
+    emailBody += `=================%0D%0A%0D%0A`;
     
+    // Add all questions and answers
     allQuestions.forEach(q => {
         if (answers[q.id] !== undefined && answers[q.id] !== '') {
             let answerText = answers[q.id];
             
+            // Format arrays
             if (Array.isArray(answerText)) {
                 answerText = answerText.join(', ');
             }
             
-            emailBody += `${q.text}%0D%0A${answerText}%0D%0A%0D%0A`;
+            emailBody += `${q.text}%0D%0A`;
+            emailBody += `${answerText}%0D%0A%0D%0A`;
         }
     });
     
-    const mailto = `mailto:roeir@ar-fo.co.il?cc=${clientEmail}&subject=שאלון לקוח: ${clientName} - תשובות + ${today}&body=${emailBody}`;
-    window.location.href = mailto;
+    emailBody += `=================%0D%0A`;
+    emailBody += `סיום שאלון`;
+    
+    // Create mailto with both recipient and cc (client gets copy)
+    const mailto = `mailto:roeir@ar-fo.co.il?cc=${clientEmail}&subject=שאלון לקוח: ${clientName} - ${today}&body=${emailBody}`;
+    
+    // Open mailto in hidden iframe (won't interrupt user)
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = mailto;
+    document.body.appendChild(iframe);
+    
+    // Remove iframe after 2 seconds
+    setTimeout(() => {
+        document.body.removeChild(iframe);
+    }, 2000);
 }
 
 function sendWhatsApp() {
