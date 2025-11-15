@@ -1296,7 +1296,10 @@ body {
             
             <div class="summary-actions" style="justify-content: center; margin-bottom: 2rem;">
                 <button class="btn-primary" onclick="sendEmail()">
-                    <i class="fas fa-paper-plane"></i> שלח שאלון
+                    <i class="fas fa-envelope"></i> שלח במייל
+                </button>
+                <button class="btn-whatsapp" onclick="sendWhatsApp()">
+                    <i class="fab fa-whatsapp"></i> שלח ב-WhatsApp
                 </button>
                 <button class="btn-secondary" onclick="editAnswers()">
                     <i class="fas fa-edit"></i> ערוך תשובות
@@ -2393,14 +2396,12 @@ function retryEmail(clientEmail, clientName) {
 function sendFullEmail(clientEmail, clientName) {
     const today = new Date().toLocaleDateString('he-IL');
     
-    // Build ULTRA MINIMAL email body - no decorations, minimal spacing
-    let emailBody = '';
+    // Build simple text email with formatting
+    let emailBody = `${clientName} - ${today}%0D%0A%0D%0A`;
     
-    // Minimal header - one line only
-    emailBody += `${clientName} - ${today}%0D%0A`;
+    let currentSection = -1;
     
     // Iterate through ALL questions (not filtered allQuestions)
-    // This ensures we catch all answered questions, including conditionals
     questions.forEach(q => {
         const hasAnswer = answers[q.id] !== undefined && 
                          answers[q.id] !== null && 
@@ -2408,6 +2409,17 @@ function sendFullEmail(clientEmail, clientName) {
                          !(Array.isArray(answers[q.id]) && answers[q.id].length === 0);
         
         if (hasAnswer) {
+            // Add section header if section changed
+            if (q.section !== currentSection) {
+                if (currentSection !== -1) {
+                    emailBody += `%0D%0A━━━━━━━━━━━━━━━%0D%0A`;
+                }
+                if (q.sectionTitle) {
+                    emailBody += `%0D%0A${q.sectionTitle}%0D%0A%0D%0A`;
+                }
+                currentSection = q.section;
+            }
+            
             let answerText = answers[q.id];
             
             // Format arrays
@@ -2420,42 +2432,43 @@ function sendFullEmail(clientEmail, clientName) {
             const answerLower = String(answerText).toLowerCase();
             
             // Red conditions - תשובות שיהיו באדום
-            if (answerLower.includes('עצמאי') ||  // עצמאי בסטטוס תעסוקה
-                answerLower === 'חודשי' ||        // תדירות הפקדות חודשי
-                (q.id === 'usCitizen' && answerLower === 'כן') ||  // אזרחות/תושבות ארה"ב
-                (q.id === 'otherTaxResident' && answerLower === 'כן') ||  // תושבות לצרכי מס
-                (q.id === 'financialStatus' && answerLower.includes('לא מאוזן כלכלית')) ||  // לא מאוזן כלכלית
-                (q.id === 'taxRefundCheck' && answerLower === 'לא') ||  // לא בדיקת החזרי מס
-                (q.id === 'investmentHorizon' && answerLower.includes('קצר'))) {  // טווח השקעה קצר
+            if (answerLower.includes('עצמאי') ||
+                answerLower === 'חודשי' ||
+                (q.id === 'usCitizen' && answerLower === 'כן') ||
+                (q.id === 'otherTaxResident' && answerLower === 'כן') ||
+                (q.id === 'financialStatus' && answerLower.includes('לא מאוזן כלכלית')) ||
+                (q.id === 'taxRefundCheck' && answerLower === 'לא') ||
+                (q.id === 'investmentHorizon' && answerLower.includes('קצר'))) {
                 isRedAnswer = true;
             }
             
-            // Format with bold questions and red answers where needed
+            // Format with bold questions and red marker for problematic answers
             if (isRedAnswer) {
-                emailBody += `**${q.text}**: 🔴 ${answerText}%0D%0A`;
+                emailBody += `${q.text}: 🔴 ${answerText}%0D%0A`;
             } else {
-                emailBody += `**${q.text}**: ${answerText}%0D%0A`;
+                emailBody += `${q.text}: ${answerText}%0D%0A`;
             }
         }
     });
-    
-    // NO footer - removed contact info as requested
     
     // Create mailto with both recipient and cc (client gets copy)
     const subject = encodeURIComponent(`שאלון - ${clientName}`);
     const mailto = `mailto:roeir@ar-fo.co.il?cc=${encodeURIComponent(clientEmail)}&subject=${subject}&body=${emailBody}`;
     
-    // Check if mailto URL is too long (Gmail limit is ~2000 chars)
-    console.log('📧 mailto URL length:', mailto.length);
-    if (mailto.length > 2000) {
-        console.warn('⚠️ mailto URL is', mailto.length, 'chars - Gmail may show empty email');
-        console.warn('💡 Recommend using WhatsApp instead for best results');
-    } else {
-        console.log('✅ mailto URL is short enough for Gmail');
-    }
-    
     // Open mailto - will open email client
     window.location.href = mailto;
+    
+    // Show success message
+    setTimeout(() => {
+        const notification = document.createElement('div');
+        notification.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(45deg, #D4AF37, #E8C547); color: #1A2B3C; padding: 1rem 2rem; border-radius: 8px; z-index: 10000; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center;';
+        notification.innerHTML = '✓ תוכנת המייל נפתחה!<br><span style="font-size: 0.85rem;">פשוט לחץ "שלח" בתוכנת המייל</span>';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }, 500);
 }
 
 function closeSuccessModal() {
@@ -2498,7 +2511,27 @@ function sendWhatsApp() {
                 answerText = answerText.join(', ');
             }
             
-            message += `❓ *${q.text}*\n✅ ${answerText}\n\n`;
+            // Check if answer should be marked as red/problematic
+            let isRedAnswer = false;
+            const answerLower = String(answerText).toLowerCase();
+            
+            // Red conditions - תשובות שיהיו מסומנות
+            if (answerLower.includes('עצמאי') ||
+                answerLower === 'חודשי' ||
+                (q.id === 'usCitizen' && answerLower === 'כן') ||
+                (q.id === 'otherTaxResident' && answerLower === 'כן') ||
+                (q.id === 'financialStatus' && answerLower.includes('לא מאוזן כלכלית')) ||
+                (q.id === 'taxRefundCheck' && answerLower === 'לא') ||
+                (q.id === 'investmentHorizon' && answerLower.includes('קצר'))) {
+                isRedAnswer = true;
+            }
+            
+            // Format message with red marker for problematic answers
+            if (isRedAnswer) {
+                message += `❓ *${q.text}*\n🔴 *${answerText}*\n\n`;
+            } else {
+                message += `❓ *${q.text}*\n✅ ${answerText}\n\n`;
+            }
         }
     });
     
@@ -2507,6 +2540,18 @@ function sendWhatsApp() {
     const phoneNumber = '972528089808';
     const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappURL, '_blank');
+    
+    // Show success message
+    setTimeout(() => {
+        const notification = document.createElement('div');
+        notification.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #25D366; color: white; padding: 1rem 2rem; border-radius: 8px; z-index: 10000; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center;';
+        notification.innerHTML = '✓ WhatsApp נפתח!<br><span style="font-size: 0.85rem;">פשוט לחץ "שלח" ב-WhatsApp</span>';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }, 500);
 }
 
 // Global variable to store open sections
