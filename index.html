@@ -2382,14 +2382,14 @@ function sendFullEmail(clientEmail, clientName) {
     
     const today = new Date().toLocaleDateString('he-IL');
     
-    // Build styled and complete email body
+    // Build simple, clean email body
     let emailBody = '';
     
-    // Header
-    emailBody += `╔═══════════════════════════════════════════════════╗%0D%0A`;
-    emailBody += `║          שאלון לקוח - ${clientName}          ║%0D%0A`;
-    emailBody += `║          תאריך: ${today}          ║%0D%0A`;
-    emailBody += `╚═══════════════════════════════════════════════════╝%0D%0A%0D%0A`;
+    // Header - simple lines that work everywhere
+    emailBody += `====================================================%0D%0A`;
+    emailBody += `               שאלון לקוח - ${clientName}%0D%0A`;
+    emailBody += `                  תאריך: ${today}%0D%0A`;
+    emailBody += `====================================================%0D%0A%0D%0A`;
     
     // Group questions by section
     let currentSection = -1;
@@ -2411,9 +2411,9 @@ function sendFullEmail(clientEmail, clientName) {
                     emailBody += `%0D%0A`;
                 }
                 
-                emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%0D%0A`;
-                emailBody += `📋 ${q.sectionTitle || 'חלק ' + sectionNumber}%0D%0A`;
-                emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%0D%0A%0D%0A`;
+                emailBody += `------------------------------------------------%0D%0A`;
+                emailBody += `${q.sectionTitle || 'חלק ' + sectionNumber}%0D%0A`;
+                emailBody += `------------------------------------------------%0D%0A%0D%0A`;
             }
             
             let answerText = answers[q.id];
@@ -2423,20 +2423,21 @@ function sendFullEmail(clientEmail, clientName) {
                 answerText = answerText.join(', ');
             }
             
-            // Format the question and answer nicely
-            emailBody += `❓ ${q.text}%0D%0A`;
-            emailBody += `   ✅ ${answerText}%0D%0A%0D%0A`;
+            // Format the question and answer - simple and clean
+            emailBody += `${q.text}%0D%0A`;
+            emailBody += `>> ${answerText}%0D%0A%0D%0A`;
         }
     });
     
     // Footer
-    emailBody += `%0D%0A━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━%0D%0A`;
-    emailBody += `📧 סיום שאלון%0D%0A`;
-    emailBody += `📞 ליצירת קשר: 052-8089808%0D%0A`;
-    emailBody += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+    emailBody += `%0D%0A====================================================%0D%0A`;
+    emailBody += `סיום שאלון%0D%0A`;
+    emailBody += `ליצירת קשר: 052-8089808%0D%0A`;
+    emailBody += `מייל: roeir@ar-fo.co.il%0D%0A`;
+    emailBody += `====================================================`;
     
     // Create mailto with both recipient and cc (client gets copy)
-    const mailto = `mailto:roeir@ar-fo.co.il?cc=${clientEmail}&subject=📋 שאלון לקוח: ${clientName} - ${today}&body=${emailBody}`;
+    const mailto = `mailto:roeir@ar-fo.co.il?cc=${clientEmail}&subject=שאלון לקוח - ${clientName} - ${today}&body=${emailBody}`;
     
     // Open mailto - will open email client
     window.location.href = mailto;
