@@ -2415,8 +2415,27 @@ function sendFullEmail(clientEmail, clientName) {
                 answerText = answerText.join(', ');
             }
             
-            // ULTRA compact format: Q: Answer (single line break only)
-            emailBody += `${q.text}: ${answerText}%0D%0A`;
+            // Check if answer should be red
+            let isRedAnswer = false;
+            const answerLower = String(answerText).toLowerCase();
+            
+            // Red conditions - תשובות שיהיו באדום
+            if (answerLower.includes('עצמאי') ||  // עצמאי בסטטוס תעסוקה
+                answerLower === 'חודשי' ||        // תדירות הפקדות חודשי
+                (q.id === 'usCitizen' && answerLower === 'כן') ||  // אזרחות/תושבות ארה"ב
+                (q.id === 'otherTaxResident' && answerLower === 'כן') ||  // תושבות לצרכי מס
+                (q.id === 'financialStatus' && answerLower.includes('לא מאוזן כלכלית')) ||  // לא מאוזן כלכלית
+                (q.id === 'taxRefundCheck' && answerLower === 'לא') ||  // לא בדיקת החזרי מס
+                (q.id === 'investmentHorizon' && answerLower.includes('קצר'))) {  // טווח השקעה קצר
+                isRedAnswer = true;
+            }
+            
+            // Format with bold questions and red answers where needed
+            if (isRedAnswer) {
+                emailBody += `**${q.text}**: 🔴 ${answerText}%0D%0A`;
+            } else {
+                emailBody += `**${q.text}**: ${answerText}%0D%0A`;
+            }
         }
     });
     
