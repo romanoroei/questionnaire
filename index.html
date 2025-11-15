@@ -2347,9 +2347,6 @@ function showSummary() {
 }
 
 function sendEmail() {
-    // Rebuild questions list to include all answered questions
-    buildQuestionsList();
-    
     const clientName = answers.fullName || 'לקוח';
     const clientEmail = answers.email || '';
     
@@ -2370,33 +2367,38 @@ function sendEmail() {
                 <i class="fas fa-envelope-open-text" style="color: #D4AF37; margin-left: 8px; font-size: 1.2rem;"></i>
                 חלון המייל נפתח - אנא לחץ "שלח" בתוכנת המייל שלך כדי להשלים את השליחה
             </p>
-            <p style="font-size: 0.85rem; color: #6b7280; margin-top: 1rem;">
-                <i class="fas fa-info-circle"></i> אם חלון המייל לא נפתח, אנא שלח דרך WhatsApp
+            <p style="font-size: 0.9rem; color: #d97706; background: #fef3c7; padding: 0.75rem; border-radius: 6px; margin-top: 1rem; border-right: 3px solid #f59e0b;">
+                <i class="fas fa-exclamation-triangle" style="margin-left: 5px;"></i>
+                <strong>אם חלון המייל לא נפתח או שהמייל ריק</strong>, אנא שלח לי דרך WhatsApp
             </p>
-            <button onclick="closeSuccessModal()" class="modal-btn">סגור</button>
-            <button onclick="sendWhatsApp()" class="btn-secondary" style="width: 100%; margin-top: 0.5rem; background: #25D366 !important; color: white !important; border: none;">
-                <i class="fab fa-whatsapp"></i> שלח ב-WhatsApp
+            <button onclick="closeSuccessModal()" class="modal-btn" style="margin-top: 1rem;">סגור</button>
+            <button onclick="sendWhatsApp()" class="btn-secondary" style="width: 100%; margin-top: 0.5rem; background: #25D366 !important; color: white !important; border: none; font-size: 1rem; padding: 0.75rem;">
+                <i class="fab fa-whatsapp" style="font-size: 1.2rem; margin-left: 5px;"></i>
+                שלח ב-WhatsApp
+            </button>
+            <button onclick="retryEmail('${clientEmail}', '${clientName}')" class="btn-secondary" style="width: 100%; margin-top: 0.5rem; background: #1A2B3C !important; color: #D4AF37 !important; border: 2px solid #D4AF37; font-size: 0.95rem; padding: 0.7rem;">
+                <i class="fas fa-envelope" style="font-size: 1.1rem; margin-left: 5px;"></i>
+                נסה שוב במייל
             </button>
         </div>
     `;
     document.body.appendChild(successModal);
 }
 
+function retryEmail(clientEmail, clientName) {
+    // Simply call sendFullEmail again
+    sendFullEmail(clientEmail, clientName);
+}
+
 function sendFullEmail(clientEmail, clientName) {
     const today = new Date().toLocaleDateString('he-IL');
     
-    // Build simple, clean email body
+    // Build COMPACT email body to avoid Gmail URL length limits
     let emailBody = '';
     
-    // Header - simple lines that work everywhere
-    emailBody += `====================================================%0D%0A`;
-    emailBody += `               שאלון לקוח - ${clientName}%0D%0A`;
-    emailBody += `                  תאריך: ${today}%0D%0A`;
-    emailBody += `====================================================%0D%0A%0D%0A`;
-    
-    // Group questions by section
-    let currentSection = -1;
-    let sectionNumber = 0;
+    // Compact header
+    emailBody += `שאלון: ${clientName} | ${today}%0D%0A`;
+    emailBody += `=================================%0D%0A%0D%0A`;
     
     // Iterate through ALL questions (not filtered allQuestions)
     // This ensures we catch all answered questions, including conditionals
@@ -2407,20 +2409,6 @@ function sendFullEmail(clientEmail, clientName) {
                          !(Array.isArray(answers[q.id]) && answers[q.id].length === 0);
         
         if (hasAnswer) {
-            // New section header
-            if (q.section !== currentSection) {
-                currentSection = q.section;
-                sectionNumber++;
-                
-                if (sectionNumber > 1) {
-                    emailBody += `%0D%0A`;
-                }
-                
-                emailBody += `------------------------------------------------%0D%0A`;
-                emailBody += `${q.sectionTitle || 'חלק ' + sectionNumber}%0D%0A`;
-                emailBody += `------------------------------------------------%0D%0A%0D%0A`;
-            }
-            
             let answerText = answers[q.id];
             
             // Format arrays
@@ -2428,21 +2416,25 @@ function sendFullEmail(clientEmail, clientName) {
                 answerText = answerText.join(', ');
             }
             
-            // Format the question and answer - simple and clean
-            emailBody += `${q.text}%0D%0A`;
-            emailBody += `>> ${answerText}%0D%0A%0D%0A`;
+            // Ultra compact format: Q: Answer
+            emailBody += `${q.text}: ${answerText}%0D%0A%0D%0A`;
         }
     });
     
-    // Footer
-    emailBody += `%0D%0A====================================================%0D%0A`;
-    emailBody += `סיום שאלון%0D%0A`;
-    emailBody += `ליצירת קשר: 052-8089808%0D%0A`;
-    emailBody += `מייל: roeir@ar-fo.co.il%0D%0A`;
-    emailBody += `====================================================`;
+    // Compact footer
+    emailBody += `%0D%0A=================================%0D%0A`;
+    emailBody += `טל: 052-8089808 | roeir@ar-fo.co.il`;
     
     // Create mailto with both recipient and cc (client gets copy)
-    const mailto = `mailto:roeir@ar-fo.co.il?cc=${clientEmail}&subject=שאלון לקוח - ${clientName} - ${today}&body=${emailBody}`;
+    const subject = encodeURIComponent(`שאלון - ${clientName} - ${today}`);
+    const mailto = `mailto:roeir@ar-fo.co.il?cc=${encodeURIComponent(clientEmail)}&subject=${subject}&body=${emailBody}`;
+    
+    // Check if mailto URL is too long (Gmail limit is ~2000 chars)
+    console.log('mailto URL length:', mailto.length);
+    if (mailto.length > 2000) {
+        console.warn('⚠️ mailto URL is', mailto.length, 'chars - Gmail may show empty email');
+        console.warn('Recommend using WhatsApp instead for best results');
+    }
     
     // Open mailto - will open email client
     window.location.href = mailto;
@@ -2459,7 +2451,9 @@ function sendWhatsApp() {
     const clientName = answers.fullName || 'לקוח';
     const today = new Date().toLocaleDateString('he-IL');
     
-    let message = `*שאלון לקוח: ${clientName}*\n*תאריך:* ${today}\n\n`;
+    let message = `📋 *שאלון לקוח: ${clientName}*\n📅 *תאריך:* ${today}\n\n`;
+    
+    let currentSection = -1;
     
     // Iterate through ALL questions (not filtered allQuestions)
     questions.forEach(q => {
@@ -2469,15 +2463,31 @@ function sendWhatsApp() {
                          !(Array.isArray(answers[q.id]) && answers[q.id].length === 0);
         
         if (hasAnswer) {
+            // Add section divider with emoji
+            if (q.section !== currentSection) {
+                currentSection = q.section;
+                if (currentSection > 0) {
+                    message += `\n━━━━━━━━━━━━━━━\n`;
+                }
+                if (q.sectionTitle) {
+                    message += `\n📌 *${q.sectionTitle}*\n\n`;
+                }
+            }
+            
             let answerText = answers[q.id];
             
             if (Array.isArray(answerText)) {
                 answerText = answerText.join(', ');
             }
             
-            message += `*${q.text}*\n${answerText}\n\n`;
+            message += `❓ *${q.text}*\n✅ ${answerText}\n\n`;
         }
     });
+    
+    message += `\n━━━━━━━━━━━━━━━\n`;
+    message += `📞 *ליצירת קשר:*\n`;
+    message += `טלפון: 052-8089808\n`;
+    message += `מייל: roeir@ar-fo.co.il`;
     
     const phoneNumber = '972528089808';
     const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
