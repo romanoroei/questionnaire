@@ -2393,12 +2393,11 @@ function retryEmail(clientEmail, clientName) {
 function sendFullEmail(clientEmail, clientName) {
     const today = new Date().toLocaleDateString('he-IL');
     
-    // Build COMPACT email body to avoid Gmail URL length limits
+    // Build ULTRA MINIMAL email body - no decorations, minimal spacing
     let emailBody = '';
     
-    // Compact header
-    emailBody += `שאלון: ${clientName} | ${today}%0D%0A`;
-    emailBody += `=================================%0D%0A%0D%0A`;
+    // Minimal header - one line only
+    emailBody += `${clientName} - ${today}%0D%0A`;
     
     // Iterate through ALL questions (not filtered allQuestions)
     // This ensures we catch all answered questions, including conditionals
@@ -2416,24 +2415,24 @@ function sendFullEmail(clientEmail, clientName) {
                 answerText = answerText.join(', ');
             }
             
-            // Ultra compact format: Q: Answer
-            emailBody += `${q.text}: ${answerText}%0D%0A%0D%0A`;
+            // ULTRA compact format: Q: Answer (single line break only)
+            emailBody += `${q.text}: ${answerText}%0D%0A`;
         }
     });
     
-    // Compact footer
-    emailBody += `%0D%0A=================================%0D%0A`;
-    emailBody += `טל: 052-8089808 | roeir@ar-fo.co.il`;
+    // NO footer - removed contact info as requested
     
     // Create mailto with both recipient and cc (client gets copy)
-    const subject = encodeURIComponent(`שאלון - ${clientName} - ${today}`);
+    const subject = encodeURIComponent(`שאלון - ${clientName}`);
     const mailto = `mailto:roeir@ar-fo.co.il?cc=${encodeURIComponent(clientEmail)}&subject=${subject}&body=${emailBody}`;
     
     // Check if mailto URL is too long (Gmail limit is ~2000 chars)
-    console.log('mailto URL length:', mailto.length);
+    console.log('📧 mailto URL length:', mailto.length);
     if (mailto.length > 2000) {
         console.warn('⚠️ mailto URL is', mailto.length, 'chars - Gmail may show empty email');
-        console.warn('Recommend using WhatsApp instead for best results');
+        console.warn('💡 Recommend using WhatsApp instead for best results');
+    } else {
+        console.log('✅ mailto URL is short enough for Gmail');
     }
     
     // Open mailto - will open email client
@@ -2484,10 +2483,7 @@ function sendWhatsApp() {
         }
     });
     
-    message += `\n━━━━━━━━━━━━━━━\n`;
-    message += `📞 *ליצירת קשר:*\n`;
-    message += `טלפון: 052-8089808\n`;
-    message += `מייל: roeir@ar-fo.co.il`;
+    // NO footer - removed contact info as requested
     
     const phoneNumber = '972528089808';
     const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
