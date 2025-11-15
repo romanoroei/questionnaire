@@ -1291,7 +1291,7 @@ body {
             <div style="text-align: center; background: linear-gradient(135deg, var(--navy-primary) 0%, var(--navy-secondary) 100%); padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
                 <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--gold-primary); margin-bottom: 1rem;"></i>
                 <h2 style="color: var(--gold-primary); font-size: 1.8rem; margin-bottom: 0.5rem;">כל הכבוד! סיימת את השאלון</h2>
-                <p style="color: var(--white); font-size: 1rem; margin: 0;">תודה שהקדשת מזמנך למלא את השאלון. שלח אלי את התשובות כדי שאוכל לעבור עליהן ולחזור אליך בהקדם.</p>
+                <p style="color: var(--white); font-size: 1rem; margin: 0;">שלח אלי בבקשה את התשובות כדי שאוכל לעבור עליהן ולחזור אליך בהקדם.</p>
             </div>
             
             <div class="summary-actions" style="justify-content: center; margin-bottom: 2rem;">
@@ -2359,17 +2359,23 @@ function sendEmail() {
     // Show success message
     const successModal = document.createElement('div');
     successModal.className = 'modal';
+    successModal.id = 'successModal';
     successModal.innerHTML = `
         <div class="modal-content">
-            <h2><i class="fas fa-check-circle" style="color: #10b981;"></i> השאלון נשלח!</h2>
-            <p>תודה ${clientName}!</p>
-            <p>חלון המייל נפתח - אנא לחץ "שלח" בתוכנת המייל שלך כדי להשלים את השליחה.</p>
+            <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 1.5rem;">
+                <i class="fas fa-check-circle" style="color: #10b981; font-size: 1.3rem; margin-left: 8px;"></i>
+                תודה ${clientName}!
+            </p>
+            <p style="font-size: 1.05rem; font-weight: 600; margin: 1.5rem 0; padding: 1.2rem; background: linear-gradient(135deg, #FFF9E6 0%, #FFF5D6 100%); border-radius: 8px; border-right: 4px solid #D4AF37; color: #1A2B3C;">
+                <i class="fas fa-envelope-open-text" style="color: #D4AF37; margin-left: 8px; font-size: 1.2rem;"></i>
+                חלון המייל נפתח - אנא לחץ "שלח" בתוכנת המייל שלך כדי להשלים את השליחה
+            </p>
             <p style="font-size: 0.85rem; color: #6b7280; margin-top: 1rem;">
                 <i class="fas fa-info-circle"></i> אם חלון המייל לא נפתח, אנא שלח דרך WhatsApp
             </p>
-            <button onclick="document.querySelector('.modal').remove()" class="modal-btn">סגור</button>
+            <button onclick="closeSuccessModal()" class="modal-btn">סגור</button>
             <button onclick="sendWhatsApp()" class="btn-secondary" style="width: 100%; margin-top: 0.5rem; background: #25D366 !important; color: white !important; border: none;">
-                <i class="fab fa-whatsapp"></i> או שלח ב-WhatsApp
+                <i class="fab fa-whatsapp"></i> שלח ב-WhatsApp
             </button>
         </div>
     `;
@@ -2377,9 +2383,6 @@ function sendEmail() {
 }
 
 function sendFullEmail(clientEmail, clientName) {
-    // Rebuild questions list to include all answered questions
-    buildQuestionsList();
-    
     const today = new Date().toLocaleDateString('he-IL');
     
     // Build simple, clean email body
@@ -2395,7 +2398,9 @@ function sendFullEmail(clientEmail, clientName) {
     let currentSection = -1;
     let sectionNumber = 0;
     
-    allQuestions.forEach(q => {
+    // Iterate through ALL questions (not filtered allQuestions)
+    // This ensures we catch all answered questions, including conditionals
+    questions.forEach(q => {
         const hasAnswer = answers[q.id] !== undefined && 
                          answers[q.id] !== null && 
                          answers[q.id] !== '' && 
@@ -2443,17 +2448,27 @@ function sendFullEmail(clientEmail, clientName) {
     window.location.href = mailto;
 }
 
+function closeSuccessModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
 function sendWhatsApp() {
-    // Rebuild questions list to include all answered questions
-    buildQuestionsList();
-    
     const clientName = answers.fullName || 'לקוח';
     const today = new Date().toLocaleDateString('he-IL');
     
     let message = `*שאלון לקוח: ${clientName}*\n*תאריך:* ${today}\n\n`;
     
-    allQuestions.forEach(q => {
-        if (answers[q.id] !== undefined && answers[q.id] !== '') {
+    // Iterate through ALL questions (not filtered allQuestions)
+    questions.forEach(q => {
+        const hasAnswer = answers[q.id] !== undefined && 
+                         answers[q.id] !== null && 
+                         answers[q.id] !== '' && 
+                         !(Array.isArray(answers[q.id]) && answers[q.id].length === 0);
+        
+        if (hasAnswer) {
             let answerText = answers[q.id];
             
             if (Array.isArray(answerText)) {
